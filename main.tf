@@ -101,12 +101,14 @@ resource "azurerm_virtual_network" "vnet1" {
   address_space       = ["10.0.0.0/16"]
   location            = var.location
   resource_group_name = var.rg_name
+}
 
-  subnet {
+resource "azurerm_subnet" "subnet1" {
     name             = "subnet1-iac"
+    resource_group_name = var.rg_name
+    virtual_network_name = azurerm_virtual_network.vnet1.name
     address_prefixes = ["10.0.1.0/24"]
   }
-}
 
 # Create a public IP
 resource "azurerm_public_ip" "publicIP1" {
@@ -124,9 +126,9 @@ resource "azurerm_network_interface" "nic1" {
   resource_group_name = var.rg_name
   ip_configuration {
     name                          = "ipconfig1-iac"
-    subnet_id                     = azurerm_subnet.subnet1[count.index].id
+    subnet_id                     = azurerm_subnet.subnet1.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.publicIP1[count.index].id
+    public_ip_address_id          = azurerm_public_ip.publicIP1.id
   }
 }
 
@@ -175,8 +177,8 @@ resource "azurerm_network_security_group" "nsg1" {
 
 # Assign the security group to the network interface 
 resource "azurerm_network_interface_security_group_association" "association1" {
-  network_interface_id      = azurerm_network_interface.nic1[count.index].id
-  network_security_group_id = azurerm_network_security_group.nsg1[count.index].id
+  network_interface_id      = azurerm_network_interface.nic1.id
+  network_security_group_id = azurerm_network_security_group.nsg1.id
 }
 
 # Create Virtual Machine
@@ -184,7 +186,7 @@ resource "azurerm_linux_virtual_machine" "vm-website" {
   name                            = "vm-website" # add your name to make it unique. Can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long.
   location                        = var.location
   resource_group_name             = var.rg_name
-  network_interface_ids           = [azurerm_network_interface.nic1[count.index].id]
+  network_interface_ids           = [azurerm_network_interface.nic1.id]
   size                            = "Standard_B1s"
   admin_username                  = "user-formation"
   admin_password                  = "formationCodingGame0!"
